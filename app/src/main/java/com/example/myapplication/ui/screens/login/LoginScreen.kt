@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.screens.login
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +20,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,6 +39,7 @@ fun LoginScreen(
     )
 
     val state by viewModel.uiState.collectAsState()
+    var passwordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {
@@ -47,89 +50,151 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .background(Color(0xFFF6F8FB)),
         contentAlignment = Alignment.Center
     ) {
 
-        Column(
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .widthIn(max = 400.dp), // keeps form centered on large screens
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(20.dp)
+                .widthIn(max = 420.dp),
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.cardElevation(1.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            )
         ) {
 
-            // ✅ LOGO SECTION
-            Image(
-                painter = painterResource(id = R.drawable.logo),
-                contentDescription = "Logo",
+            Column(
                 modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-            )
-
-
-
-            Text(
-                buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = Color(0xFF0156A6))) {
-                        append("EDUTELE ")
-                    }
-                    withStyle(style = SpanStyle(color = Color(0xFFE9A001))) {
-                        append("Pay")
-                    }
-                },
-                fontSize = 30.sp,
-                fontWeight = FontWeight.ExtraBold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = state.email,
-                onValueChange = { viewModel.onEmailChange(it) },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            OutlinedTextField(
-                value = state.password,
-                onValueChange = { viewModel.onPasswordChange(it) },
-                label = { Text("Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Button(
-                onClick = { viewModel.login() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(55.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF0156A6), // background color
-                    contentColor = Color.White         // text/icon color
-                ),
-                enabled = !state.isLoading
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp
+
+                // LOGO
+                Image(
+                    painter = painterResource(id = R.drawable.logo),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(70.dp)
+                        .clip(CircleShape)
+                )
+
+                // BRAND TEXT
+                Text(
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(color = Color(0xFF0156A6))) {
+                            append("EDUTELE ")
+                        }
+                        withStyle(SpanStyle(color = Color(0xFFCE8D00))) {
+                            append("ACCESS")
+                        }
+                    },
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+
+                Text(
+                    text = "Secure financial access for your account",
+                    fontSize = 13.sp,
+                    color = Color.Gray
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // EMAIL
+                OutlinedTextField(
+                    value = state.email,
+                    onValueChange = viewModel::onEmailChange,
+                    label = { Text(
+                        "Email",
+                        color = Color.Gray
+                    ) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp)
+                )
+
+                // PASSWORD
+                OutlinedTextField(
+                    value = state.password,
+                    onValueChange = viewModel::onPasswordChange,
+                    label = { Text(
+                        "Password",
+                        color = Color.Gray
+                    ) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    visualTransformation =
+                    if (passwordVisible)
+                        VisualTransformation.None
+                    else
+                        PasswordVisualTransformation(),
+
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                passwordVisible = !passwordVisible
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(
+                                    id = if (passwordVisible)
+                                        R.drawable.visibility_off_24px
+                                    else
+                                        R.drawable.visibility_24px
+                                ),
+                                contentDescription = null,
+                                tint = Color.Gray
+                            )
+                        }
+                    }
+                )
+
+                // LOGIN BUTTON
+                Button(
+                    onClick = viewModel::login,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    enabled = !state.isLoading,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF0156A6),
+                        contentColor = Color.White
                     )
-                } else {
+                ) {
+
+                    if (state.isLoading) {
+
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = Color.White
+                        )
+
+                    } else {
+
+                        Text(
+                            text = "Login",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                // ERROR
+                state.error?.let {
+
                     Text(
-                        "Login",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                        text = it,
+                        color = Color(0xFFD32F2F),
+                        fontSize = 13.sp
                     )
                 }
-            }
-
-            state.error?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error
-                )
             }
         }
     }

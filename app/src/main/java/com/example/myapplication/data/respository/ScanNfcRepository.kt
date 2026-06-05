@@ -1,5 +1,7 @@
 package com.example.myapplication.data.respository
 
+import com.example.myapplication.data.model.nfc.nfcUidRequest
+import com.example.myapplication.data.model.nfc.nfcUidResponse
 import com.example.myapplication.data.model.qr.QrConfirmRequest
 import com.example.myapplication.data.model.qr.QrConfirmResponse
 import com.example.myapplication.data.model.qr.QrRequest
@@ -9,14 +11,12 @@ import com.example.myapplication.data.model.qr.checkQrTokenResponse
 import com.example.myapplication.data.remote.ApiService
 import retrofit2.Response
 
-class ScanQrRepository(
-    private val api: ApiService
-) {
+class ScanNfcRepository(private val api:ApiService) {
 
-    suspend fun checkQrData(token:String, qrToken: String): Response<checkQrTokenResponse>{
-        return api.checkQrToken(
+    suspend fun checkNfcUid(token:String, nfcUid: String): Response<nfcUidResponse> {
+        return api.checkNfcUid(
             "Bearer $token",
-            checkQrTokenRequest(qrToken)
+            nfcUidRequest(nfcUid)
         )
     }
 

@@ -8,11 +8,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.data.local.UserPreferences
 import com.example.myapplication.data.model.qr.QrConfirmResponse
 import com.example.myapplication.data.respository.ScanQrRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
+import org.json.JSONObject
 
 
 class ScanQrViewModel(
@@ -21,24 +23,33 @@ class ScanQrViewModel(
 ) : ViewModel() {
 
 
-    var isLoading = mutableStateOf(false)
+    var isLoading = MutableStateFlow(false)
         private set
 
-    var resultMessage = mutableStateOf("")
+    var successMessage = MutableStateFlow("")
 
-    var errorMessage = mutableStateOf("")
+    var errorMessage = MutableStateFlow("")
         private set
 
-    var publicId = mutableStateOf("")
+    var publicId = MutableStateFlow("")
         private set
 
-    var showPasswordDialog = mutableStateOf(false)
+    var cardHolder = MutableStateFlow("")
         private set
 
-    var showConfirmationDialog = mutableStateOf(false)
+    var enterAmountDialog = MutableStateFlow(false)
         private set
 
-    var qrResponse = mutableStateOf<QrConfirmResponse?>(null)
+    var showPasswordDialog = MutableStateFlow(false)
+        private set
+
+    var showConfirmationDialog = MutableStateFlow(false)
+        private set
+
+    var showErrorDialog = MutableStateFlow(false)
+    private
+
+    var qrResponse = MutableStateFlow<QrConfirmResponse?>(null)
         private set
 
     private var hasScanned = false
@@ -57,9 +68,57 @@ class ScanQrViewModel(
         showPasswordDialog.value = false
     }
 
+    fun checkToken(qrToken: String){
+        viewModelScope.launch {
+
+            try {
+                val tokenValue =
+                    userPreferences.tokenFlow.first()
+
+                if (!tokenValue.isNullOrEmpty()) {
+
+                    val response = repository.checkQrData(
+                        tokenValue, qrToken
+                    )
+
+                    if(response.isSuccessful){
+                        publicId.value = response.body()?.public_id ?: ""
+
+                        cardHolder.value = response.body()?.card_holder_name ?: ""
+
+                        openEnterAmountDialog()
+                    } else {
+
+                        val errorBody = response.errorBody()?.string()
+
+                        val errorDetail = errorBody?.let {
+                            try {
+                                JSONObject(it).getString("detail")
+                            } catch (e: Exception) {
+                                "Unknown error"
+                            }
+                        }
+                        errorMessage.value = errorDetail ?: "Unknown error"
+                        Log.d("SCAN_QR", "Request failed")
+                        showErrorDialog.value = true
+                    }
+
+                } else {
+
+                    errorMessage.value =
+                        "No token available"
+
+                }
+            }catch (e:Exception){
+                errorMessage.value =
+                    e.message ?: "Unknown error"
+            }
+
+        }
+    }
 
     fun processQrCode(
-        qrData: String,
+        publicId: String,
         amount: String,
         remarks: String
     ) {
@@ -77,38 +136,30 @@ class ScanQrViewModel(
                 val tokenValue =
                     userPreferences.tokenFlow.first()
 
-                if (!tokenValue.isNullOrEmpty()) {
-
-                    Log.d("SCAN_QR", "token Value: $tokenValue")
-
-
-                    val response = repository.submitQr(
-                            qrData,
+                if (!tokenValue.isNullOrEmpty() && publicId.isNotEmpty()) {
+                    val response = repository.submitPayAmount(
+                        publicId,
                             amount,
                             remarks,
                             tokenValue
                         )
 
                     if(response.isSuccessful){
-
-                        val body = response.body()
-                        Log.d("SCAN_QR", "response body: $body")
-
-                        if (body != null) {
-                            publicId.value = body.public_id
-                        }
-
-                        resultMessage.value = " request went through"
                         showPasswordDialog.value = true
-
-                        Log.d("SCAN_QR", "Request went through")
-
                     } else {
 
-                        errorMessage.value =
-                            response.message()
-                        Log.d("SCAN_QR", "Request failed")
+                        val errorBody = response.errorBody()?.string()
 
+                        val errorDetail = errorBody?.let {
+                            try {
+                                JSONObject(it).getString("detail")
+                            } catch (e: Exception) {
+                                "Unknown error"
+                            }
+                        }
+
+                        errorMessage.value = errorDetail ?: "Unknown error"
+                        showErrorDialog.value = true
                     }
 
 
@@ -137,9 +188,6 @@ class ScanQrViewModel(
 
                 // get token
                 val tokenValue = userPreferences.tokenFlow.first()
-                Log.d("SCAN_QR", "Confirm pay tokenValue: $tokenValue")
-
-
                 if(!tokenValue.isNullOrEmpty()){
                     val response = publicId.let { repository.confirmPayment(it.value,tokenValue,pin) }
 
@@ -147,23 +195,35 @@ class ScanQrViewModel(
                         showPasswordDialog.value = false
                         qrResponse.value = response.body()
                         showConfirmationDialog.value = true
-
-                        Log.d("SCAN_QR", "Confirmation went through")
+                        successMessage.value = "Access Received Successfully"
 
                     }else{
-                        Log.d("SCAN_QR", "Confirm pay Request failed")
+
+                        val errorBody = response.errorBody()?.string()
+
+                        val errorDetail = errorBody?.let {
+                            try {
+                                JSONObject(it).getString("detail")
+                            } catch (e: Exception) {
+                                "Unknown error"
+                            }
+                        }
+
+                        errorMessage.value = errorDetail ?: "Unknown error"
+                        showErrorDialog.value = true
+
                     }
 
                 }else {
                     errorMessage.value =
                         "No token available"
-                    Log.d("SCAN_QR", "confirm pay No token available")
+
                 }
 
             }catch (e:Exception){
                 errorMessage.value =
                     e.message ?: "Unknown error"
-                Log.d("SCAN_QR", "confirm pay Unknown error")
+
             }
 
 
@@ -174,5 +234,16 @@ class ScanQrViewModel(
         showConfirmationDialog.value = false
     }
 
+    fun openEnterAmountDialog(){
+        enterAmountDialog.value = true
+    }
+
+    fun closeEnterAmountDialog(){
+        enterAmountDialog.value = false
+    }
+
+    fun dismissErrorDialog(){
+        showErrorDialog.value = false
+    }
 
 }

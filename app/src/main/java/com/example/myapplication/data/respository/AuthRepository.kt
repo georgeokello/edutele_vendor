@@ -29,7 +29,7 @@ class AuthRepository(
                     userPreferences.saveUser(
                         token = user_token,
                         userId = user_id,
-                        username = response2.body()!!.username,
+                        username = response2.body()!!.full_name,
                     )
                     Result.success(Unit)
 

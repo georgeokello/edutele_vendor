@@ -34,6 +34,7 @@ import com.example.myapplication.ui.screens.scancards.NfcScreen
 import com.example.myapplication.ui.screens.scanqr.ScanQRScreen
 import com.example.myapplication.ui.screens.transaction.TransactionScreen
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.ui.util.debug.NfcDebug
 
 class MainActivity : ComponentActivity() {
 
@@ -67,41 +68,76 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        nfcAdapter?.enableForegroundDispatch(this, pendingIntent, null, null)
+    // ✅ CALLED ONLY FROM NFC SCREEN
+    fun enableNfc() {
+        val intent = Intent(this, javaClass)
+            .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_MUTABLE
+        )
+
+        nfcAdapter?.enableForegroundDispatch(
+            this,
+            pendingIntent,
+            null,
+            null
+        )
     }
 
-    override fun onPause() {
-        super.onPause()
+    fun disableNfc() {
         nfcAdapter?.disableForegroundDispatch(this)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
-        if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action) {
-            val tag = intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG)
-            tag?.let {
-                readNfcTag(it)
-            }
+        NfcDebug.lastMessage = "Intent received: ${intent.action}"
+
+        // 1. Validate NFC intent action
+        if (intent.action != NfcAdapter.ACTION_TAG_DISCOVERED &&
+            intent.action != NfcAdapter.ACTION_TECH_DISCOVERED &&
+            intent.action != NfcAdapter.ACTION_NDEF_DISCOVERED
+        ) {
+            NfcDebug.lastMessage = "Ignored non-NFC intent: ${intent.action}"
+            return
+        }
+
+        // 2. Extract tag safely (API-aware)
+        val tag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG)
+        }
+
+        if (tag == null) {
+            NfcDebug.lastMessage = "NFC Tag is NULL"
+            return
+        }
+
+        // 3. Process tag
+        val uid = formatUid(tag.id)
+
+        NfcDebug.lastMessage = "Tag detected: $uid"
+
+        // 4. Trigger state update only after validation
+        NfcManager.updateData(uid)
+
+        NfcManager.setTrue()
+
+    }
+
+    private fun formatUid(bytes: ByteArray): String {
+        return bytes.joinToString(":") { byte ->
+            "%02X".format(byte)
         }
     }
 
-    private fun readNfcTag(tag: Tag) {
-        val ndef = Ndef.get(tag)
-        ndef?.connect()
 
-        val message = ndef?.ndefMessage
-        val records = message?.records
-
-        records?.forEach {
-            val payload = String(it.payload)
-            NfcManager.updateData(payload)
-        }
-
-        ndef?.close()
-    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -116,7 +152,7 @@ fun AppNavigation(modifier: Modifier){
     ){
         composable(route = "login"){
             LoginScreen(onLoginSuccess = {
-                navController.navigate("nfc_Scan"){
+                navController.navigate("home"){
                     popUpTo("login"){inclusive = true} // remove login from back stack
                 }
             })

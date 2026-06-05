@@ -3,10 +3,14 @@ package com.example.myapplication.data.remote
 
 import com.example.myapplication.data.model.login.LoginDetailsResponse
 import com.example.myapplication.data.model.login.LoginRequest
+import com.example.myapplication.data.model.nfc.nfcUidRequest
+import com.example.myapplication.data.model.nfc.nfcUidResponse
 import com.example.myapplication.data.model.qr.QrConfirmRequest
 import com.example.myapplication.data.model.qr.QrConfirmResponse
 import com.example.myapplication.data.model.qr.QrRequest
 import com.example.myapplication.data.model.qr.QrResponse
+import com.example.myapplication.data.model.qr.checkQrTokenRequest
+import com.example.myapplication.data.model.qr.checkQrTokenResponse
 import com.example.myapplication.data.model.transactions.TransactionsResponse
 import retrofit2.Response
 import retrofit2.http.Body
@@ -27,9 +31,11 @@ interface ApiService {
          @Header("Authorization") token: String
     ): Response<LoginDetailsResponse>
 
-    @POST("payments/qr/scan")
-    suspend fun scanqr(
+    // set Amount
+    @POST("payments/{public_id}/amount")
+    suspend fun setAmount(
         @Header("Authorization") token: String,
+        @Path("public_id") publicId: String,
         @Body request: QrRequest
     ): Response<QrResponse>
 
@@ -47,5 +53,22 @@ interface ApiService {
         @Header("Authorization") token : String
 
     ):Response<TransactionsResponse>
+
+    // check qr token
+    @POST("payments/qr/scan")
+    suspend fun checkQrToken(
+        @Header("Authorization") token: String,
+        @Body request: checkQrTokenRequest
+    ):Response<checkQrTokenResponse>
+
+    // check nfc uid
+    @POST("/api/payments/nfc/scan")
+    suspend fun checkNfcUid(
+        @Header("Authorization") token: String,
+        @Body request: nfcUidRequest
+
+    ): Response<nfcUidResponse>
+
+    
 
 }

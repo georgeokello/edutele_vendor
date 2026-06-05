@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.R
 import com.example.myapplication.ui.navigation.BottomNavItem
+import com.example.myapplication.ui.util.getGreeting
 
 
 @Composable
@@ -74,7 +75,7 @@ fun AppTemplate(
                 // Header Section
                 HeaderSection(userName)
 
-                Spacer(modifier = Modifier.height(60.dp)) // space for floating card
+                Spacer(modifier = Modifier.height(30.dp)) // space for floating card
 
                 // Content Area
                 Box(
@@ -87,14 +88,6 @@ fun AppTemplate(
                 }
             }
 
-            // Floating Balance Card
-            BalanceCard(
-                vendor = vendor,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .offset(y = 180.dp)
-                    .padding(horizontal = 16.dp)
-            )
         }
     }
 }
@@ -103,10 +96,10 @@ fun AppTemplate(
 fun HeaderSection(userName: String) {
     Column(
         modifier = Modifier
-            .fillMaxHeight(0.35f)
+            .fillMaxHeight(0.3f)
             .fillMaxWidth()
             .background(Color(0xFF012A56))
-            .padding(top = 50.dp, bottom = 40.dp, start = 16.dp, end = 16.dp),
+            .padding(top = 60.dp, bottom = 40.dp, start = 16.dp, end = 16.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -129,7 +122,7 @@ fun HeaderSection(userName: String) {
                             append("EDUTELE ")
                         }
                         withStyle(style = SpanStyle(color = Color(0xFFE9A001))) {
-                            append("Pay")
+                            append("Access")
                         }
                     },
                     fontSize = 30.sp,
@@ -142,7 +135,7 @@ fun HeaderSection(userName: String) {
           modifier =  Modifier.padding(top = 18.dp, end = 18.dp),
             ) {
             Text(
-                text = "Good morning, $userName",
+                text = getGreeting(userName),
                 color = Color.White,
                 fontSize = 16.sp,
             )
@@ -150,52 +143,6 @@ fun HeaderSection(userName: String) {
     }
 }
 
-@Composable
-fun BalanceCard(
-    vendor: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .fillMaxHeight(0.18f),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(6.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF0156A6)
-        )
-    ) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .padding(10.dp)
-
-
-        ) {
-            Text(
-                text = "Vendor",
-                color = Color.White,
-                fontSize = 16.sp,
-                modifier = Modifier.padding(6.dp)
-            )
-
-            Text(
-                text = vendor,
-                color = Color.White,
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(5.dp)
-            )
-
-            Text(
-                text = "Vendor Account",
-                color = Color.White,
-                fontSize = 14.sp,
-                modifier = Modifier.padding(6.dp)
-            )
-        }
-    }
-}
 
 @Composable
 fun BottomNavigationBar(
@@ -204,7 +151,7 @@ fun BottomNavigationBar(
     onItemClick: (Int) -> Unit
 ) {
     NavigationBar(
-        containerColor = Color.White
+        containerColor = Color(0xFF012A56)
     ) {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
@@ -212,16 +159,16 @@ fun BottomNavigationBar(
                 onClick = { onItemClick(index) },
                 icon = {
                     Icon(
-                        item.icon,
+                        painter = painterResource(id = item.icon),
                         contentDescription = item.label,
-                        tint = if (index == selectedIndex) Color.Blue else Color.Gray
+                        tint = if (index == selectedIndex) Color(0xFFE9A001) else Color.Gray
                     )
                 },
                 label = {
                     Text(
                         item.label,
                         fontSize = 10.sp,
-                        color = if (index == selectedIndex) Color.Blue else Color.Gray
+                        color = if (index == selectedIndex) Color(0xFFE9A001) else Color.Gray
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(

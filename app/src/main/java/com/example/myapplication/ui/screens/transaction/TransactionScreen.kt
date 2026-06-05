@@ -6,13 +6,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapplication.data.local.UserPreferences
@@ -60,7 +63,7 @@ fun TransactionScreen(navController: NavController) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp)
+                        .padding(8.dp)
                 ) {
 
                     when {
@@ -69,9 +72,19 @@ fun TransactionScreen(navController: NavController) {
                         }
 
                         state.error != null -> {
+                            LaunchedEffect(state.error) {
+
+                                if (state.error == "Invalid or expired token.") {
+
+                                    navController.navigate("login") {
+                                        popUpTo(0)
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
                             Text(
-                                text = state.error ?: "Unknown error",
-                                color = MaterialTheme.colorScheme.error
+                                text = "Something went wrong, Check your internet",
+                                color = Color.Gray
                             )
                         }
 
@@ -97,27 +110,124 @@ fun TransactionScreen(navController: NavController) {
 @Composable
 fun TransactionCard(transaction: TransactionItem, viewModel: TransactionViewModel) {
 
-    val backgroundColor = when (transaction.status) {
-        "posted" -> Color(0xFF81C784)
-        "pending" -> Color(0xFFFFF3CD)
-        "failed" -> Color(0xFFF8D7DA)
-        else -> Color.LightGray
-    }
+        val statusText = when (transaction.status.lowercase()) {
+            "posted" -> "Completed"
+            "pending" -> "Pending"
+            "failed" -> "Failed"
+            else -> transaction.status
+        }
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = backgroundColor
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        val statusColor = when (transaction.status.lowercase()) {
+            "posted" -> Color(0xFF2E7D32)
+            "pending" -> Color(0xFFF9A825)
+            "failed" -> Color(0xFFC62828)
+            else -> Color.Gray
+        }
+
+        val statusBackground = when (transaction.status.lowercase()) {
+            "posted" -> Color(0xFFE8F5E9)
+            "pending" -> Color(0xFFFFF8E1)
+            "failed" -> Color(0xFFFFEBEE)
+            else -> Color(0xFFF5F5F5)
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.cardElevation(1.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
-            Text(text = "Status: ${transaction.status}")
-            Text(text = "Type: ${transaction.type}")
-            Text(text = "Amount: ${transaction.amount}")
-            Text(text = "New Balance: ${transaction.balance_after}")
-            Text(text = "Date: ${viewModel.formatTimestamp(transaction.timestamp)}")
+
+            Column(
+                modifier = Modifier.padding(15.dp)
+            ) {
+
+                // TOP ROW
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Column {
+
+                        Text(
+                            text = transaction.type.uppercase(),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = viewModel.formatTimestamp(transaction.timestamp),
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        Text(
+                            text = "Ref: ${transaction.reference}",
+                            fontSize = 11.sp,
+                            color = Color.Gray,
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = statusBackground
+                    ) {
+
+                        Text(
+                            text = statusText.uppercase(),
+                            modifier = Modifier.padding(
+                                horizontal = 14.dp,
+                                vertical = 6.dp
+                            ),
+                            color = statusColor,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // AMOUNT
+                Text(
+                    text = "UGX ${transaction.amount}",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                HorizontalDivider(color = Color(0xFFEAEAEA))
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // BALANCE AFTER
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+
+                    Text(
+                        text = "New Balance",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+
+                    Text(
+                        text = "UGX ${transaction.balance_after}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black
+                    )
+                }
+            }
         }
     }
-}
