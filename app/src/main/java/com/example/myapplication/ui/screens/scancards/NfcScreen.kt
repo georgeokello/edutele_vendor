@@ -70,7 +70,7 @@ fun NfcScreen(navController: NavController) {
 
     val username by viewModel.username.collectAsState()
 
-    var amount by remember {
+    var accessValue by remember {
         mutableStateOf("")
     }
 
@@ -84,7 +84,7 @@ fun NfcScreen(navController: NavController) {
 
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val showAmountDialog by viewModel.enterAmountDialog.collectAsState()
+    val showAmountDialog by viewModel.enterAccessValueDialog.collectAsState()
     val showPasswordDialog by viewModel.showPasswordDialog.collectAsState()
     val showConfirmationDialog by viewModel.showConfirmationDialog.collectAsState()
     val showErrorDialog by viewModel.showErrorDialog.collectAsState()
@@ -120,6 +120,7 @@ fun NfcScreen(navController: NavController) {
         userName = username ?: "",
         navItems = navItems,
         selectedNavIndex = navItems.indexOfFirst { it.route == currentRoute },
+        navController = navController,
         onNavSelected = { index ->
             val route = navItems[index].route
             if (route != currentRoute) navigateTo(navController, route)
@@ -148,7 +149,7 @@ fun NfcScreen(navController: NavController) {
                     text = if (hasScanned)
                         "Processing card..."
                     else
-                        "Tap card to scan"
+                        "Waiting for a card tap..."
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -180,7 +181,7 @@ fun NfcScreen(navController: NavController) {
 
                 AlertDialog(
                     onDismissRequest = {
-                        viewModel.closeEnterAmountDialog()
+                        viewModel.closeEnterAccessValueDialog()
                     },
                     shape = RoundedCornerShape(8.dp),
                     containerColor = Color.White,
@@ -230,21 +231,15 @@ fun NfcScreen(navController: NavController) {
                         ) {
 
                             OutlinedTextField(
-                                value = amount,
+                                value = accessValue,
                                 onValueChange = {
                                     if (it.matches(Regex("^\\d*$"))) {
-                                        amount = it
+                                        accessValue = it
                                     }
                                 },
-                                label = { Text("Amount") },
+                                label = { Text("Access Value") },
                                 singleLine = true,
                                 shape = RoundedCornerShape(12.dp),
-                                leadingIcon = {
-                                    Icon(
-                                        painter = painterResource(R.drawable.money_range_24px),
-                                        contentDescription = null,
-                                    )
-                                },
                                 keyboardOptions = KeyboardOptions(
                                     keyboardType = KeyboardType.Number
                                 ),
@@ -271,9 +266,9 @@ fun NfcScreen(navController: NavController) {
                     confirmButton = {
                         Button(
                             onClick = {
-                                viewModel.processQrCode(publicId, amount, remarks)
+                                viewModel.processQrCode(publicId, accessValue, remarks)
                             },
-                            enabled = amount.isNotBlank(),
+                            enabled = accessValue.isNotBlank(),
                             modifier = Modifier.padding(end = 8.dp),
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -288,7 +283,7 @@ fun NfcScreen(navController: NavController) {
                     dismissButton = {
                         OutlinedButton(
                             onClick = {
-                                viewModel.closeEnterAmountDialog()
+                                viewModel.closeEnterAccessValueDialog()
                             },
                             shape = RoundedCornerShape(12.dp)
                         ) {
@@ -352,7 +347,7 @@ fun NfcScreen(navController: NavController) {
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = amount,
+                                text = accessValue,
                                 fontSize = 32.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Color(0xFF2E7D32),
@@ -416,7 +411,7 @@ fun NfcScreen(navController: NavController) {
                         val isPasswordValid = password.length >= 5
                         Button(
                             onClick = {
-                                viewModel.confirmPay(publicId, password)
+                                viewModel.verifyAccess(publicId, password)
                             },
                             enabled = isPasswordValid,
                             modifier = Modifier

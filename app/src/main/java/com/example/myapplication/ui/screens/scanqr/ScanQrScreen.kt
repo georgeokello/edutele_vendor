@@ -102,14 +102,14 @@ fun ScanQRScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val successMessage by viewModel.successMessage.collectAsState()
-    val showEnterAmountDialog by viewModel.enterAmountDialog.collectAsState()
+    val showEnterAccessValueDialog by viewModel.enterAccessValueDialog.collectAsState()
     val showPasswordDialog by viewModel.showPasswordDialog.collectAsState()
-    val showConfirmationDialog by viewModel.showConfirmationDialog.collectAsState()
+    val showConfirmationDialog by viewModel.showVerifyAccessDialog.collectAsState()
     val showErrorDialog by viewModel.showErrorDialog.collectAsState()
 
 
 
-    var amount by remember { mutableStateOf("") }
+    var accessValue by remember { mutableStateOf("") }
     var remarks by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -150,6 +150,7 @@ fun ScanQRScreen(
         userName = username ?: "",
         navItems = navItems,
         selectedNavIndex = navItems.indexOfFirst { it.route == currentRoute },
+        navController = navController,
         onNavSelected = { index ->
             val route = navItems[index].route
             if (route != currentRoute) navigateTo(navController, route)
@@ -282,12 +283,12 @@ fun ScanQRScreen(
 
 
             // ENTER AMOUNT DIALOG
-            if (showEnterAmountDialog) {
+            if (showEnterAccessValueDialog) {
 
 
                 AlertDialog(
                     onDismissRequest = {
-                        viewModel.closeEnterAmountDialog()
+                        viewModel.closeAccessValueDialog()
                     },
                     shape = RoundedCornerShape(8.dp),
                     containerColor = Color.White,
@@ -337,21 +338,15 @@ fun ScanQRScreen(
                         ) {
 
                             OutlinedTextField(
-                                value = amount,
+                                value = accessValue,
                                 onValueChange = {
                                     if (it.matches(Regex("^\\d*$"))) {
-                                        amount = it
+                                        accessValue = it
                                     }
                                 },
-                                label = { Text("Amount") },
+                                label = { Text("Access Value") },
                                 singleLine = true,
                                 shape = RoundedCornerShape(12.dp),
-                                leadingIcon = {
-                                    Icon(
-                                        painter = painterResource(R.drawable.money_range_24px),
-                                        contentDescription = null,
-                                    )
-                                },
                                 keyboardOptions = KeyboardOptions(
                                     keyboardType = KeyboardType.Number
                                 ),
@@ -378,11 +373,11 @@ fun ScanQRScreen(
                     confirmButton = {
                         Button(
                             onClick = {
-                                viewModel.closeEnterAmountDialog()
+                                viewModel.closeAccessValueDialog()
 
-                                viewModel.processQrCode(viewModel.publicId.value, amount,remarks)
+                                viewModel.processQrCode(viewModel.publicId.value, accessValue,remarks)
                             },
-                            enabled = amount.isNotBlank(),
+                            enabled = accessValue.isNotBlank(),
                             modifier = Modifier.padding(end = 8.dp),
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -397,7 +392,7 @@ fun ScanQRScreen(
                     dismissButton = {
                         OutlinedButton(
                             onClick = {
-                                viewModel.closeEnterAmountDialog()
+                                viewModel.closeAccessValueDialog()
 
                                 startScanning.value = true
                             },
@@ -464,7 +459,7 @@ fun ScanQRScreen(
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = amount,
+                                text = accessValue,
                                 fontSize = 32.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Color(0xFF2E7D32),
@@ -528,7 +523,7 @@ fun ScanQRScreen(
                         val isPasswordValid = password.length >= 5
                         Button(
                             onClick = {
-                                viewModel.confirmPay(password)
+                                viewModel.verifyAccess(password)
                             },
                             enabled = isPasswordValid,
                             modifier = Modifier

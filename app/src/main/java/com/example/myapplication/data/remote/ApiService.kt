@@ -1,6 +1,7 @@
 package com.example.myapplication.data.remote
 
 
+import com.example.myapplication.data.model.home.DashboardResponse
 import com.example.myapplication.data.model.login.LoginDetailsResponse
 import com.example.myapplication.data.model.login.LoginRequest
 import com.example.myapplication.data.model.nfc.nfcUidRequest
@@ -11,7 +12,7 @@ import com.example.myapplication.data.model.qr.QrRequest
 import com.example.myapplication.data.model.qr.QrResponse
 import com.example.myapplication.data.model.qr.checkQrTokenRequest
 import com.example.myapplication.data.model.qr.checkQrTokenResponse
-import com.example.myapplication.data.model.transactions.TransactionsResponse
+import com.example.myapplication.data.model.redemptions.RedemptionsResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -32,15 +33,15 @@ interface ApiService {
     ): Response<LoginDetailsResponse>
 
     // set Amount
-    @POST("payments/{public_id}/amount")
-    suspend fun setAmount(
+    @POST("redemptions/{public_id}/amount")
+    suspend fun setAccessValue(
         @Header("Authorization") token: String,
         @Path("public_id") publicId: String,
         @Body request: QrRequest
     ): Response<QrResponse>
 
-    @POST("payments/confirm/{public_id}")
-    suspend fun confirmPayment(
+    @POST("redemptions/confirm/{public_id}")
+    suspend fun verifyAccess(
         @Header("Authorization") token: String,
         @Path("public_id")
         publicId: String,
@@ -48,27 +49,31 @@ interface ApiService {
 
     ): Response<QrConfirmResponse>
 
-    @GET("transactions")
-    suspend fun getTransactions(
+    @GET("access-events")
+    suspend fun getRedemptions(
         @Header("Authorization") token : String
 
-    ):Response<TransactionsResponse>
+    ):Response<RedemptionsResponse>
 
     // check qr token
-    @POST("payments/qr/scan")
+    @POST("redemptions/qr/scan")
     suspend fun checkQrToken(
         @Header("Authorization") token: String,
         @Body request: checkQrTokenRequest
     ):Response<checkQrTokenResponse>
 
     // check nfc uid
-    @POST("/api/payments/nfc/scan")
+    @POST("redemptions/nfc/scan")
     suspend fun checkNfcUid(
         @Header("Authorization") token: String,
         @Body request: nfcUidRequest
 
     ): Response<nfcUidResponse>
 
-    
+
+    @GET("dashboard")
+    suspend fun getCardInfo(
+        @Header("Authorization") token : String
+    ):Response<DashboardResponse>
 
 }

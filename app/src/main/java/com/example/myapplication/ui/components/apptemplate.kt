@@ -1,11 +1,13 @@
 package com.example.myapplication.ui.components
 
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,12 +20,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +46,7 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.myapplication.R
 import com.example.myapplication.ui.navigation.BottomNavItem
 import com.example.myapplication.ui.util.getGreeting
@@ -52,6 +59,7 @@ fun AppTemplate(
     navItems: List<BottomNavItem>,
     selectedNavIndex: Int,
     onNavSelected: (Int) -> Unit,
+    navController: NavController,
     content: @Composable () -> Unit
 ) {
     Scaffold(
@@ -73,9 +81,9 @@ fun AppTemplate(
 
             Column {
                 // Header Section
-                HeaderSection(userName)
+                HeaderSection(userName, navController)
 
-                Spacer(modifier = Modifier.height(30.dp)) // space for floating card
+                Spacer(modifier = Modifier.height(20.dp)) // space for floating card
 
                 // Content Area
                 Box(
@@ -93,13 +101,13 @@ fun AppTemplate(
 }
 
 @Composable
-fun HeaderSection(userName: String) {
+fun HeaderSection(userName: String, navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxHeight(0.3f)
             .fillMaxWidth()
             .background(Color(0xFF012A56))
-            .padding(top = 60.dp, bottom = 40.dp, start = 16.dp, end = 16.dp),
+            .padding(top = 50.dp, bottom = 35.dp, start = 16.dp, end = 16.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -109,11 +117,11 @@ fun HeaderSection(userName: String) {
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "Logo",
                 modifier = Modifier
-                    .size(60.dp)
+                    .size(65.dp)
                     .clip(CircleShape)
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(18.dp))
 
             Column {
                 Text(
@@ -121,8 +129,9 @@ fun HeaderSection(userName: String) {
                         withStyle(style = SpanStyle(color = Color.White)) {
                             append("EDUTELE ")
                         }
+                        Spacer(modifier = Modifier.width(5.dp))
                         withStyle(style = SpanStyle(color = Color(0xFFE9A001))) {
-                            append("Access")
+                            append("AP")
                         }
                     },
                     fontSize = 30.sp,
@@ -131,14 +140,56 @@ fun HeaderSection(userName: String) {
             }
 
         }
-        Column(
-          modifier =  Modifier.padding(top = 18.dp, end = 18.dp),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 15.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Column {
+                Text(
+                    text = getGreeting(userName),
+                    color = Color.White,
+                    fontSize = 16.sp,
+                )
+            }
+
+            OutlinedButton(
+                onClick = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                modifier = Modifier.height(32.dp),
+                contentPadding = PaddingValues(
+                    horizontal = 8.dp,
+                    vertical = 0.dp
+                ),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = Color.White,
+                    containerColor = Color(0xFF990000)
+                ),
+                border = BorderStroke(
+                    1.dp,
+                    Color(0xFF990000)
+                ),
+                shape = RoundedCornerShape(10.dp),
             ) {
-            Text(
-                text = getGreeting(userName),
-                color = Color.White,
-                fontSize = 16.sp,
-            )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                    contentDescription = null,
+                    modifier = Modifier.size(12.dp)
+                )
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                Text(
+                    text = "Logout",
+                    fontSize = 11.sp
+                )
+            }
         }
     }
 }

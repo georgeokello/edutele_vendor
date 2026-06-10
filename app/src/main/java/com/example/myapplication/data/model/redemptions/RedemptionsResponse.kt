@@ -1,17 +1,17 @@
-package com.example.myapplication.data.model.transactions
+package com.example.myapplication.data.model.redemptions
 
-data class TransactionsResponse(
-val items: List<TransactionItem>,
+data class RedemptionsResponse(
+val items: List<RedemptionsItem>,
 val total: Int
 )
 
-data class TransactionItem(
+data class RedemptionsItem(
     val public_id: String,
     val type: String,
     val status: String,
     val amount: String,
-    val balance_before: String,
-    val balance_after: String,
+    val remaining_before: String,
+    val remaining_after: String,
     val reference: String,
     val remarks: String,
     val timestamp: String,

@@ -20,8 +20,8 @@ class ScanQrRepository(
         )
     }
 
-    suspend fun submitPayAmount(path:String, amount: String, remarks: String, token: String): Response<QrResponse> {
-        return api.setAmount(
+    suspend fun submitAccessValue(path:String, amount: String, remarks: String, token: String): Response<QrResponse> {
+        return api.setAccessValue(
             "Bearer $token",
             path,
             QrRequest(
@@ -31,13 +31,13 @@ class ScanQrRepository(
         )
     }
 
-    suspend fun confirmPayment(
+    suspend fun verifyAccess(
         publicId: String,
         token: String,
         pin: String
     ): Response<QrConfirmResponse> {
 
-        return api.confirmPayment(
+        return api.verifyAccess(
             "Bearer $token",
             publicId,
             QrConfirmRequest(

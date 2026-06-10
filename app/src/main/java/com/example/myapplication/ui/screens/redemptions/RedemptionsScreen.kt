@@ -1,8 +1,7 @@
-package com.example.myapplication.ui.screens.transaction
+package com.example.myapplication.ui.screens.redemptions
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapplication.data.local.UserPreferences
-import com.example.myapplication.data.model.transactions.TransactionItem
+import com.example.myapplication.data.model.redemptions.RedemptionsItem
 import com.example.myapplication.ui.components.AppTemplate
 import com.example.myapplication.ui.navigation.navItems
 import com.example.myapplication.ui.util.navigateTo
@@ -27,37 +26,38 @@ import com.example.myapplication.ui.util.navigateTo
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 
-fun TransactionScreen(navController: NavController) {
+fun RedemptionScreen(navController: NavController) {
 
     val context = LocalContext.current
     val currentRoute = "history"
 
     val userPreferences = UserPreferences(context)
 
-    val viewModelTransaction: TransactionViewModel = viewModel(
-        factory = TransactionViewModelFactory(userPreferences)
+    val viewModel: RedemptionViewModel = viewModel(
+        factory = RedemptionViewModelFactory(userPreferences)
     )
 
-    val state by viewModelTransaction.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsState()
 
-    val username by viewModelTransaction.username.collectAsState()
+    val username by viewModel.username.collectAsState()
 
 
     LaunchedEffect(Unit) {
-        viewModelTransaction.fetchTransactions()
+        viewModel.fetchRedemptions()
     }
 
     AppTemplate(
         userName = username.toString(),
         navItems = navItems,
         selectedNavIndex = navItems.indexOfFirst { it.route == currentRoute },
+        navController = navController,
         onNavSelected = { index ->
             val route = navItems[index].route
             if (route != currentRoute) navigateTo(navController, route)
         }
     ) {
         Column {
-            Text(text = "Transaction History")
+            Text(text = "Redemption History")
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
 
                 Box(
@@ -92,8 +92,8 @@ fun TransactionScreen(navController: NavController) {
                             LazyColumn(
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                items(state.transactions) { transaction ->
-                                    TransactionCard(transaction, viewModelTransaction)
+                                items(state.redemptions) { redemption ->
+                                    RedemptionCard(redemption, viewModel)
                                 }
                             }
                         }
@@ -108,23 +108,23 @@ fun TransactionScreen(navController: NavController) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TransactionCard(transaction: TransactionItem, viewModel: TransactionViewModel) {
+fun RedemptionCard(redemption: RedemptionsItem, viewModel: RedemptionViewModel) {
 
-        val statusText = when (transaction.status.lowercase()) {
+        val statusText = when (redemption.status.lowercase()) {
             "posted" -> "Completed"
             "pending" -> "Pending"
             "failed" -> "Failed"
-            else -> transaction.status
+            else -> redemption.status
         }
 
-        val statusColor = when (transaction.status.lowercase()) {
+        val statusColor = when (redemption.status.lowercase()) {
             "posted" -> Color(0xFF2E7D32)
             "pending" -> Color(0xFFF9A825)
             "failed" -> Color(0xFFC62828)
             else -> Color.Gray
         }
 
-        val statusBackground = when (transaction.status.lowercase()) {
+        val statusBackground = when (redemption.status.lowercase()) {
             "posted" -> Color(0xFFE8F5E9)
             "pending" -> Color(0xFFFFF8E1)
             "failed" -> Color(0xFFFFEBEE)
@@ -152,7 +152,7 @@ fun TransactionCard(transaction: TransactionItem, viewModel: TransactionViewMode
                     Column {
 
                         Text(
-                            text = transaction.type.uppercase(),
+                            text = redemption.type.uppercase(),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
@@ -161,7 +161,7 @@ fun TransactionCard(transaction: TransactionItem, viewModel: TransactionViewMode
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Text(
-                            text = viewModel.formatTimestamp(transaction.timestamp),
+                            text = viewModel.formatTimestamp(redemption.timestamp),
                             fontSize = 12.sp,
                             color = Color.Gray
                         )
@@ -169,7 +169,7 @@ fun TransactionCard(transaction: TransactionItem, viewModel: TransactionViewMode
                         Spacer(modifier = Modifier.height(2.dp))
 
                         Text(
-                            text = "Ref: ${transaction.reference}",
+                            text = "Ref: ${redemption.reference}",
                             fontSize = 11.sp,
                             color = Color.Gray,
                         )
@@ -197,7 +197,7 @@ fun TransactionCard(transaction: TransactionItem, viewModel: TransactionViewMode
 
                 // AMOUNT
                 Text(
-                    text = "UGX ${transaction.amount}",
+                    text = "UGX ${redemption.amount}",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -222,7 +222,7 @@ fun TransactionCard(transaction: TransactionItem, viewModel: TransactionViewMode
                     )
 
                     Text(
-                        text = "UGX ${transaction.balance_after}",
+                        text = "UGX ${redemption.remaining_after}",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.Black

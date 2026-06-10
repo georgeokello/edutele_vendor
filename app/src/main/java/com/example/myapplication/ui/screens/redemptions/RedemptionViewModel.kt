@@ -1,13 +1,12 @@
-package com.example.myapplication.ui.screens.transaction
+package com.example.myapplication.ui.screens.redemptions
 
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.local.UserPreferences
-import com.example.myapplication.data.model.transactions.TransactionItem
-import com.example.myapplication.data.respository.TransactionsRepository
-import kotlinx.coroutines.delay
+import com.example.myapplication.data.model.redemptions.RedemptionsItem
+import com.example.myapplication.data.respository.RedemptionsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,20 +20,20 @@ import java.time.format.DateTimeFormatter
 
 
 // 📊 UI State
-data class TransactionUiState(
+data class RedemptionsUiState(
     val isLoading: Boolean = false,
-    val transactions: List<TransactionItem> = emptyList(),
+    val redemptions: List<RedemptionsItem> = emptyList(),
     val error: String? = null
 )
 
-class TransactionViewModel (
+class RedemptionViewModel (
     private val userPreferences: UserPreferences,
-    private val repository: TransactionsRepository
+    private val repository: RedemptionsRepository
 
     ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(TransactionUiState())
-    val uiState: StateFlow<TransactionUiState> = _uiState
+    private val _uiState = MutableStateFlow(RedemptionsUiState())
+    val uiState: StateFlow<RedemptionsUiState> = _uiState
 
     val username: StateFlow<String?> =
         userPreferences.usernameFlow
@@ -44,7 +43,7 @@ class TransactionViewModel (
                 initialValue = null
             )
 
-    fun fetchTransactions() {
+    fun fetchRedemptions() {
         viewModelScope.launch {
 
             _uiState.value = _uiState.value.copy(
@@ -58,7 +57,7 @@ class TransactionViewModel (
 
                 if(!tokenValue.isNullOrEmpty()){
 
-                    val response = repository.getVendorTransactions(tokenValue)
+                    val response = repository.getVendorRedemptions(tokenValue)
 
                     if (response.isSuccessful) {
 
@@ -67,7 +66,7 @@ class TransactionViewModel (
 
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
-                            transactions = transactions
+                            redemptions = transactions
                         )
 
                     } else {
@@ -102,7 +101,7 @@ class TransactionViewModel (
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message ?: "Failed to load transactions"
+                    error = e.message ?: "Failed to load redemptions"
                 )
             }
         }

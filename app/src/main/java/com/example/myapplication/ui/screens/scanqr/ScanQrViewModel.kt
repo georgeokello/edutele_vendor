@@ -37,13 +37,13 @@ class ScanQrViewModel(
     var cardHolder = MutableStateFlow("")
         private set
 
-    var enterAmountDialog = MutableStateFlow(false)
+    var enterAccessValueDialog = MutableStateFlow(false)
         private set
 
     var showPasswordDialog = MutableStateFlow(false)
         private set
 
-    var showConfirmationDialog = MutableStateFlow(false)
+    var showVerifyAccessDialog = MutableStateFlow(false)
         private set
 
     var showErrorDialog = MutableStateFlow(false)
@@ -86,7 +86,7 @@ class ScanQrViewModel(
 
                         cardHolder.value = response.body()?.card_holder_name ?: ""
 
-                        openEnterAmountDialog()
+                        openAccessValueDialog()
                     } else {
 
                         val errorBody = response.errorBody()?.string()
@@ -119,7 +119,7 @@ class ScanQrViewModel(
 
     fun processQrCode(
         publicId: String,
-        amount: String,
+        accessValue: String,
         remarks: String
     ) {
 
@@ -137,9 +137,9 @@ class ScanQrViewModel(
                     userPreferences.tokenFlow.first()
 
                 if (!tokenValue.isNullOrEmpty() && publicId.isNotEmpty()) {
-                    val response = repository.submitPayAmount(
+                    val response = repository.submitAccessValue(
                         publicId,
-                            amount,
+                        accessValue,
                             remarks,
                             tokenValue
                         )
@@ -181,7 +181,7 @@ class ScanQrViewModel(
         }
     }
 
-    fun confirmPay(pin: String){
+    fun verifyAccess(pin: String){
         viewModelScope.launch {
 
             try {
@@ -189,12 +189,12 @@ class ScanQrViewModel(
                 // get token
                 val tokenValue = userPreferences.tokenFlow.first()
                 if(!tokenValue.isNullOrEmpty()){
-                    val response = publicId.let { repository.confirmPayment(it.value,tokenValue,pin) }
+                    val response = publicId.let { repository.verifyAccess(it.value,tokenValue,pin) }
 
                     if(response.isSuccessful){
                         showPasswordDialog.value = false
                         qrResponse.value = response.body()
-                        showConfirmationDialog.value = true
+                        showVerifyAccessDialog.value = true
                         successMessage.value = "Access Received Successfully"
 
                     }else{
@@ -231,15 +231,15 @@ class ScanQrViewModel(
 
     }
     fun dismissConfirmDialog() {
-        showConfirmationDialog.value = false
+        showVerifyAccessDialog.value = false
     }
 
-    fun openEnterAmountDialog(){
-        enterAmountDialog.value = true
+    fun openAccessValueDialog(){
+        enterAccessValueDialog.value = true
     }
 
-    fun closeEnterAmountDialog(){
-        enterAmountDialog.value = false
+    fun closeAccessValueDialog(){
+        enterAccessValueDialog.value = false
     }
 
     fun dismissErrorDialog(){

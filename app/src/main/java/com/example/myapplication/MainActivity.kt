@@ -5,7 +5,6 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.Tag
-import android.nfc.tech.Ndef
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -28,11 +27,11 @@ import androidx.navigation.compose.rememberNavController
 
 import com.example.myapplication.ui.screens.homescreen.HomeScreen
 import com.example.myapplication.ui.screens.login.LoginScreen
+import com.example.myapplication.ui.screens.redemptions.RedemptionScreen
 import com.example.myapplication.ui.screens.scancards.NfcManager
 import com.example.myapplication.ui.screens.scancards.NfcScreen
 
 import com.example.myapplication.ui.screens.scanqr.ScanQRScreen
-import com.example.myapplication.ui.screens.transaction.TransactionScreen
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.util.debug.NfcDebug
 
@@ -164,7 +163,7 @@ fun AppNavigation(modifier: Modifier){
             ScanQRScreen(modifier = Modifier, navController)
         }
         composable("history") {
-            TransactionScreen(navController = navController)
+            RedemptionScreen(navController = navController)
         }
         composable("nfc_Scan") {
             NfcScreen(navController)

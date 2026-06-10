@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.local.UserPreferences
 import com.example.myapplication.data.model.qr.QrConfirmResponse
-import com.example.myapplication.data.respository.ScanCardRepository
 import com.example.myapplication.data.respository.ScanNfcRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -40,7 +39,7 @@ class NfcViewModel(
         private set
 
 
-    var enterAmountDialog = MutableStateFlow(false)
+    var enterAccessValueDialog = MutableStateFlow(false)
         private set
 
     var showPasswordDialog = MutableStateFlow(false)
@@ -81,7 +80,7 @@ class NfcViewModel(
                         publicId.value = response.body()?.public_id ?: ""
                         cardHolder.value = response.body()?.card_holder_name ?: ""
 
-                        openEnterAmountDialog()
+                        openEnterAccessValueDialog()
                         isLoading.value = false
                         NfcManager.setFalse()
 
@@ -132,7 +131,7 @@ class NfcViewModel(
                     userPreferences.tokenFlow.first()
 
                 if (!tokenValue.isNullOrEmpty() && publicProcessId.isNotEmpty()) {
-                    val response = repository.submitPayAmount(
+                    val response = repository.submitAccessValue(
                         publicProcessId,
                         amount,
                         remarks,
@@ -143,7 +142,7 @@ class NfcViewModel(
                         showPasswordDialog.value = true
                         publicId.value = (response.body()?.public_id ?: 0).toString()
                         isLoading.value = false
-                        closeEnterAmountDialog()
+                        closeEnterAccessValueDialog()
                     } else {
 
                         val errorBody = response.errorBody()?.string()
@@ -182,7 +181,7 @@ class NfcViewModel(
         }
     }
 
-    fun confirmPay(publicProcessId: String, pin: String){
+    fun verifyAccess(publicProcessId: String, pin: String){
         viewModelScope.launch {
 
             try {
@@ -190,7 +189,7 @@ class NfcViewModel(
                 // get token
                 val tokenValue = userPreferences.tokenFlow.first()
                 if(!tokenValue.isNullOrEmpty()){
-                    val response = repository.confirmPayment(publicProcessId,tokenValue,pin)
+                    val response = repository.verifyAccess(publicProcessId,tokenValue,pin)
 
                     if(response.isSuccessful){
                         showPasswordDialog.value = false
@@ -233,12 +232,12 @@ class NfcViewModel(
         showConfirmationDialog.value = false
     }
 
-    fun openEnterAmountDialog(){
-        enterAmountDialog.value = true
+    fun openEnterAccessValueDialog(){
+        enterAccessValueDialog.value = true
     }
 
-    fun closeEnterAmountDialog(){
-        enterAmountDialog.value = false
+    fun closeEnterAccessValueDialog(){
+        enterAccessValueDialog.value = false
         NfcManager.setFalse()
     }
 
