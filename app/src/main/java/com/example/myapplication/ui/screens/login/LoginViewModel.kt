@@ -7,6 +7,7 @@ import com.example.myapplication.data.respository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
 
@@ -49,7 +50,7 @@ class LoginViewModel(private val repository: AuthRepository) : ViewModel() {
                 Log.e("LOGIN_ERROR", "Error: $e")
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = "Login failed try again!!"
+                    error = e.message
                 )
             }
         }

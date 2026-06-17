@@ -22,12 +22,12 @@ import retrofit2.http.Path
 
 interface ApiService {
 
-    @POST("login")
+    @POST("access_point/login")
     suspend fun login(
         @Body request: LoginRequest
     ): Response<LoginDetailsResponse>
 
-    @GET("me")
+    @GET("access_point/me")
     suspend fun getUserDetails(
          @Header("Authorization") token: String
     ): Response<LoginDetailsResponse>

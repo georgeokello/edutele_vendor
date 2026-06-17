@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.myapplication.data.local.UserPreferences
 import com.example.myapplication.data.model.login.LoginRequest
 import com.example.myapplication.data.remote.ApiService
+import org.json.JSONObject
 
 
 class AuthRepository(
@@ -38,7 +39,16 @@ class AuthRepository(
                 }
 
             } else {
-                Result.failure(Exception("Login request failed"))
+                val errorBody = response.errorBody()?.string()
+
+                val errorDetail = errorBody?.let {
+                    try {
+                        JSONObject(it).getString("detail")
+                    } catch (e: Exception) {
+                        "Unknown error, Try again Later"
+                    }
+                }
+                Result.failure(Exception(errorDetail))
             }
 
         } catch (e: Exception) {
